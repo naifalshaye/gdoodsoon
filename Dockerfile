@@ -60,7 +60,7 @@ EXPOSE 80
 
 # Copy the docker-entrypoint.sh script and make it executable
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-COPY .env.docker .env
+COPY .env.production .env
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Set Apache DocumentRoot to Laravel's public directory
