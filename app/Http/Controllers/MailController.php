@@ -36,7 +36,7 @@ class MailController extends Controller
 
             // Send the email with the updated HTML structure
             Mail::send([], [], function ($message) use ($validatedData) {
-                $message->to('admin@example.com')  // Update to your recipient's email
+                $message->to('naif.alshaye@gdood.com')  // Update to your recipient's email
                 ->subject('New Contact Form Message')
                     ->html('<h1>Message from ' . $validatedData['name'] . '</h1><p>' . $validatedData['message'] . '</p>')
                     ->from($validatedData['sender_email'], $validatedData['name']);
