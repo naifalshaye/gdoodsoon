@@ -60,7 +60,7 @@ EXPOSE 80
 
 # Copy the docker-entrypoint.sh script and make it executable
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-COPY .env.production .env
+COPY .env.docker .env
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Set Apache DocumentRoot to Laravel's public directory
@@ -70,29 +70,21 @@ RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["apache2-foreground"]
 
+#RUN set -ex; \
+#  { \
+#    echo "; Cloud Run enforces memory & timeouts"; \
+#    echo "memory_limit = -1"; \
+#    echo "max_execution_time = 0"; \
+#    echo "; File upload at Cloud Run network limit"; \
+#    echo "upload_max_filesize = 32M"; \
+#    echo "post_max_size = 32M"; \
+#    echo "; Configure Opcache for Containers"; \
+#    echo "opcache.enable = On"; \
+#    echo "opcache.validate_timestamps = Off"; \
+#    echo "; Configure Opcache Memory (Application-specific)"; \
+#    echo "opcache.memory_consumption = 32"; \
+#  } > "$PHP_INI_DIR/conf.d/cloud-run.ini"
+#
+#RUN sed -i 's/80/8080/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
 
-RUN set -ex; \
-  { \
-    echo "; Cloud Run enforces memory & timeouts"; \
-    echo "memory_limit = -1"; \
-    echo "max_execution_time = 0"; \
-    echo "; File upload at Cloud Run network limit"; \
-    echo "upload_max_filesize = 32M"; \
-    echo "post_max_size = 32M"; \
-    echo "; Configure Opcache for Containers"; \
-    echo "opcache.enable = On"; \
-    echo "opcache.validate_timestamps = Off"; \
-    echo "; Configure Opcache Memory (Application-specific)"; \
-    echo "opcache.memory_consumption = 32"; \
-  } > "$PHP_INI_DIR/conf.d/cloud-run.ini" \
-
-#Use the PORT environment variable in Apache configuration files.
-#https://cloud.google.com/run/docs/reference/container-contract#port
-RUN sed -i 's/80/8080/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
-
-# Configure PHP for development.
-# Switch to the production php.ini for production operations.
-# RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
-# https://github.com/docker-library/docs/blob/master/php/README.md#configuration
-#RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
-
+RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
