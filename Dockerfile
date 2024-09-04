@@ -70,6 +70,9 @@ RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["apache2-foreground"]
 
+RUN sed -i 's/80/${PORT}/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
+RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
+
 #RUN set -ex; \
 #  { \
 #    echo "; Cloud Run enforces memory & timeouts"; \
@@ -85,5 +88,3 @@ CMD ["apache2-foreground"]
 #    echo "opcache.memory_consumption = 32"; \
 #  } > "$PHP_INI_DIR/conf.d/cloud-run.ini"
 #
-#RUN sed -i 's/80/8080/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
-#RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
