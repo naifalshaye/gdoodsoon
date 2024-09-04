@@ -56,7 +56,7 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 RUN chmod -R 755 /var/www/html && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Expose port 80 for Apache
-EXPOSE 80
+EXPOSE 8080
 
 # Copy the docker-entrypoint.sh script and make it executable
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
