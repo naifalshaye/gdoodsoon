@@ -58,6 +58,7 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 EXPOSE 8080
 
 COPY .env.production .env
+#COPY .env.docker .env
 
 # Copy the docker-entrypoint.sh script and make it executable
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
