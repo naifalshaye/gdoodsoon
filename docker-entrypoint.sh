@@ -1,14 +1,19 @@
 #!/bin/bash
 
-# Clear Laravel caches (optional)
-php artisan config:clear
-php artisan route:clear
-php artisan cache:clear
-php artisan view:clear
-php artisan storage:link
+# Ensure storage and bootstrap/cache directories have the correct permissions
+echo "Setting permissions for storage and bootstrap/cache..."
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Run any additional setup scripts (e.g., migrate database)
- php artisan migrate:fresh --force
+# Run database migrations (optional)
+# echo "Running database migrations..."
+# php artisan migrate --force
 
-# Execute the default command (Apache server)
-exec "$@"
+# Run any additional Laravel commands you need (optional)
+# php artisan config:cache
+# php artisan route:cache
+# php artisan view:cache
+
+# Run Apache in the foreground
+echo "Starting Apache..."
+exec apache2-foreground

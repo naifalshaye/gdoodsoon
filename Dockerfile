@@ -35,59 +35,42 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Enable Apache Rewrite Module for Laravel routing
 RUN a2enmod rewrite
 
-# Set working directory
+# Set the working directory inside the container
 WORKDIR /var/www/html
 
-# Copy Composer dependencies early to leverage Docker layer caching
-COPY composer.json composer.lock ./
-
-# Install Composer dependencies (optimized with cache)
-RUN composer install --no-dev --prefer-dist --no-scripts --no-autoloader
-
-# Copy existing application directory contents to the container
+# Copy the entire application into the container
 COPY . .
 
-# Re-run Composer autoloader optimization after code copy
-RUN composer dump-autoload --optimize
-
-# Ensure correct permissions in Dockerfile
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
-    && chmod -R 0755 /var/www/html/storage /var/www/html/bootstrap/cache
-
-# Expose port 8080 for Apache
-EXPOSE 8080
-
+# Copy the production environment file to .env
 COPY .env.production .env
 #COPY .env.docker .env
 
-# Copy the docker-entrypoint.sh script and make it executable
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+# Ensure correct permissions for Laravel
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Install Composer dependencies with optimized autoloader
+RUN composer install --no-dev --prefer-dist --optimize-autoloader
+
+# Build frontend assets with NPM (Vite for production)
+RUN npm install && npm run build
+
+# Expose port 8080 for Cloud Run or other environments
+EXPOSE 8080
 
 # Set Apache DocumentRoot to Laravel's public directory
 RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf /etc/apache2/apache2.conf
 
-# Modify Apache to listen on port 8080
+# Modify Apache to listen on port 8080 for production environments
 RUN sed -i 's/80/8080/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
 RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
 
-# Optional: Optimize PHP for Cloud Run
-RUN set -ex; \
-  { \
-    echo "; Cloud Run enforces memory & timeouts"; \
-    echo "memory_limit = -1"; \
-    echo "max_execution_time = 0"; \
-    echo "; File upload at Cloud Run network limit"; \
-    echo "upload_max_filesize = 32M"; \
-    echo "post_max_size = 32M"; \
-    echo "; Configure Opcache for Containers"; \
-    echo "opcache.enable = On"; \
-    echo "opcache.validate_timestamps = Off"; \
-    echo "opcache.memory_consumption = 32"; \
-  } > "$PHP_INI_DIR/conf.d/cloud-run.ini"
-
-# Start Apache in the foreground
-CMD ["apache2-foreground"]
+# Copy the entrypoint script and make it executable
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Set the entrypoint to the script
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+
+# Start Apache in the foreground
+CMD ["apache2-foreground"]
