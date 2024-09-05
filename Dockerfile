@@ -49,27 +49,31 @@ COPY . .
 # Re-run Composer autoloader optimization after code copy
 RUN composer dump-autoload --optimize
 
+USER www-data
+
 # Ensure correct permissions in Dockerfile
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
-    && chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache
+    && chmod -R 0755 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Expose port 80 for Apache
 EXPOSE 8080
 
 # Copy the docker-entrypoint.sh script and make it executable
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+#COPY .env.production .env
 COPY .env.production .env
+
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Set Apache DocumentRoot to Laravel's public directory
 RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf /etc/apache2/apache2.conf
 
-# Use the entrypoint script to clear cache and run Apache in the foreground
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["apache2-foreground"]
 
-RUN sed -i 's/80/${PORT}/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
+RUN sed -i 's/80/8080/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
 RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
+
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
 #RUN set -ex; \
 #  { \
