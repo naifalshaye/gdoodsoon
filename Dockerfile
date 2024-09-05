@@ -49,11 +49,9 @@ COPY . .
 # Re-run Composer autoloader optimization after code copy
 RUN composer dump-autoload --optimize
 
-# Set permissions for Laravel writable directories
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-
-# Ensure that the public directory and all files are readable by the web server
-RUN chmod -R 755 /var/www/html && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+# Ensure correct permissions in Dockerfile
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Expose port 80 for Apache
 EXPOSE 8080
