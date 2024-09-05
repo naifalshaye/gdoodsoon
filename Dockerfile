@@ -4,7 +4,7 @@ FROM php:8.3-apache
 # Set environment variables to prevent interactive mode during installation
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Update and install required dependencies and PHP extensions
+# Update and install required dependencies, PHP extensions, and MySQL client
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     nodejs \
     npm \
+    default-mysql-client \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) gd \
     && docker-php-ext-install -j$(nproc) pdo pdo_mysql mbstring exif pcntl bcmath opcache \
@@ -49,44 +50,43 @@ COPY . .
 # Re-run Composer autoloader optimization after code copy
 RUN composer dump-autoload --optimize
 
-USER www-data
-
 # Ensure correct permissions in Dockerfile
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
     && chmod -R 0755 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Expose port 80 for Apache
+# Expose port 8080 for Apache
 EXPOSE 8080
+
+COPY .env.production .env
 
 # Copy the docker-entrypoint.sh script and make it executable
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-#COPY .env.production .env
-COPY .env.production .env
-
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Set Apache DocumentRoot to Laravel's public directory
 RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf /etc/apache2/apache2.conf
 
-CMD ["apache2-foreground"]
-
+# Modify Apache to listen on port 8080
 RUN sed -i 's/80/8080/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
 RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
 
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+# Optional: Optimize PHP for Cloud Run
+RUN set -ex; \
+  { \
+    echo "; Cloud Run enforces memory & timeouts"; \
+    echo "memory_limit = -1"; \
+    echo "max_execution_time = 0"; \
+    echo "; File upload at Cloud Run network limit"; \
+    echo "upload_max_filesize = 32M"; \
+    echo "post_max_size = 32M"; \
+    echo "; Configure Opcache for Containers"; \
+    echo "opcache.enable = On"; \
+    echo "opcache.validate_timestamps = Off"; \
+    echo "opcache.memory_consumption = 32"; \
+  } > "$PHP_INI_DIR/conf.d/cloud-run.ini"
 
-#RUN set -ex; \
-#  { \
-#    echo "; Cloud Run enforces memory & timeouts"; \
-#    echo "memory_limit = -1"; \
-#    echo "max_execution_time = 0"; \
-#    echo "; File upload at Cloud Run network limit"; \
-#    echo "upload_max_filesize = 32M"; \
-#    echo "post_max_size = 32M"; \
-#    echo "; Configure Opcache for Containers"; \
-#    echo "opcache.enable = On"; \
-#    echo "opcache.validate_timestamps = Off"; \
-#    echo "; Configure Opcache Memory (Application-specific)"; \
-#    echo "opcache.memory_consumption = 32"; \
-#  } > "$PHP_INI_DIR/conf.d/cloud-run.ini"
-#
+# Start Apache in the foreground
+CMD ["apache2-foreground"]
+
+# Set the entrypoint to the script
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
