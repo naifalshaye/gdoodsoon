@@ -42,8 +42,8 @@ WORKDIR /var/www/html
 COPY . .
 
 # Copy the production environment file to .env
-#COPY .env.production .env
-COPY .env.docker .env
+COPY .env.production .env
+#COPY .env.docker .env
 
 # Ensure correct permissions for Laravel
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
