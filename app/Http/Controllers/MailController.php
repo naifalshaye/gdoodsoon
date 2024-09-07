@@ -19,21 +19,21 @@ class MailController extends Controller
                 'name' => 'required|string|max:255',
                 'sender_email' => 'required|email|max:255',
                 'message' => 'required|string',
-//                'g-recaptcha-response' => 'required', // reCAPTCHA validation
+                'g-recaptcha-response' => 'required',
             ]);
 
-//            // Verify reCAPTCHA
-//            $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
-//                'secret' => env('RECAPTCHA_SECRET_KEY'),
-//                'response' => $request->input('g-recaptcha-response'),
-//                'remoteip' => $request->ip(),
-//            ]);
-//
-//            $captchaValidation = json_decode($response->body());
-//
-//            if (!$captchaValidation->success) {
-//                return back()->withErrors(['g-recaptcha-response' => 'reCAPTCHA validation failed. Please try again.']);
-//            }
+            // Verify reCAPTCHA
+            $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+                'secret' => env('RECAPTCHA_SECRET_KEY'),
+                'response' => $request->input('g-recaptcha-response'),
+                'remoteip' => $request->ip(),
+            ]);
+
+            $captchaValidation = json_decode($response->body());
+
+            if (!$captchaValidation->success) {
+                return back()->withErrors(['g-recaptcha-response' => 'reCAPTCHA validation failed. Please try again.']);
+            }
 
             // Send the email with the updated HTML structure
             Mail::send([], [], function ($message) use ($validatedData) {
@@ -81,7 +81,7 @@ class MailController extends Controller
             // Get the response status and body
             $statusCode = $response->getStatusCode();
             $body = json_decode($response->getBody()->getContents(), true);
-dd($body);
+
             // Check if the status code is 200 and user is subscribed
             if ($statusCode == 200 && isset($body['status']) && $body['status'] == 'subscribed') {
                 logger(222);
