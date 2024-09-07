@@ -7,6 +7,7 @@ use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Session;
 
 class MailController extends Controller
 {
@@ -18,21 +19,21 @@ class MailController extends Controller
                 'name' => 'required|string|max:255',
                 'sender_email' => 'required|email|max:255',
                 'message' => 'required|string',
-                'g-recaptcha-response' => 'required', // reCAPTCHA validation
+//                'g-recaptcha-response' => 'required', // reCAPTCHA validation
             ]);
 
-            // Verify reCAPTCHA
-            $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
-                'secret' => env('RECAPTCHA_SECRET_KEY'),
-                'response' => $request->input('g-recaptcha-response'),
-                'remoteip' => $request->ip(),
-            ]);
-
-            $captchaValidation = json_decode($response->body());
-
-            if (!$captchaValidation->success) {
-                return back()->withErrors(['g-recaptcha-response' => 'reCAPTCHA validation failed. Please try again.']);
-            }
+//            // Verify reCAPTCHA
+//            $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+//                'secret' => env('RECAPTCHA_SECRET_KEY'),
+//                'response' => $request->input('g-recaptcha-response'),
+//                'remoteip' => $request->ip(),
+//            ]);
+//
+//            $captchaValidation = json_decode($response->body());
+//
+//            if (!$captchaValidation->success) {
+//                return back()->withErrors(['g-recaptcha-response' => 'reCAPTCHA validation failed. Please try again.']);
+//            }
 
             // Send the email with the updated HTML structure
             Mail::send([], [], function ($message) use ($validatedData) {
@@ -43,7 +44,7 @@ class MailController extends Controller
             });
 
             // Redirect back to the landing page with a success message
-            return redirect()->route('landing.page')->with('success', 'Thank you for contacting us! Your message has been sent.');
+            return redirect()->back()->with('success', 'Thank you for contacting us! Your message has been sent.');
         } catch (Exception $e) {
             logger($e->getMessage());
         }
@@ -51,6 +52,7 @@ class MailController extends Controller
 
     public function subscribe(Request $request)
     {
+
         $email_address = $request->input('email_address');
 
         // Validate the email address
@@ -69,7 +71,6 @@ class MailController extends Controller
 
         try {
             $client = new Client();
-
             // Mailchimp API request to add member to list
             $response = $client->request('POST', "https://us11.api.mailchimp.com/3.0/lists/{$listId}/members/", [
                 'auth' => ['user', $apiKey], // Basic authentication
@@ -80,9 +81,10 @@ class MailController extends Controller
             // Get the response status and body
             $statusCode = $response->getStatusCode();
             $body = json_decode($response->getBody()->getContents(), true);
-
+dd($body);
             // Check if the status code is 200 and user is subscribed
             if ($statusCode == 200 && isset($body['status']) && $body['status'] == 'subscribed') {
+                logger(222);
                 return redirect()->back()->with('success', 'Thank you for subscribing!');
             } else {
                 // Handle errors

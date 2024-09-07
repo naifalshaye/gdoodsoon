@@ -13,7 +13,7 @@
     <!-- Header and Title Section -->
     <div class="text-center py-12">
         <img src="/images/logo.png" alt="Logo" class="mx-auto mb-4 w-[320px;]"> <!-- Placeholder for the logo -->
-        <div>test</div>
+        <div>test2</div>
         <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold">
             We are <span class="text-blue-600">Almost</span> there!
         </h1>

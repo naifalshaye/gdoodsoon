@@ -7,6 +7,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/boo', function () {
+    return view('boo');
+});
+
 Route::post('/contact', [MailController::class, 'submitContactForm'])->name('contact.submit');
 Route::post('/subscribe', [MailController::class, 'subscribe'])->name('newsletter.subscribe');
 
