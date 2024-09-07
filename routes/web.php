@@ -14,5 +14,5 @@ Route::get('/test', function () {
    dd(env('DB_HOST'),env('DB_USERNAME'),env('DB_DATABASE'));
 });
 Route::get('/clear', function () {
-    \Illuminate\Support\Facades\Artisan::call('config:clear');
+\Illuminate\Support\Facades\Artisan::call('config:clear');
 });
