@@ -14,6 +14,7 @@ class MailController extends Controller
     public function submitContactForm(Request $request)
     {
         try {
+
             // Validate the form inputs and reCAPTCHA
             $validatedData = $request->validate([
                 'name' => 'required|string|max:255',
@@ -37,7 +38,7 @@ class MailController extends Controller
 
             // Send the email with the updated HTML structure
             Mail::send([], [], function ($message) use ($validatedData) {
-                $message->to('naif.alshaye@gdood.com')  // Update to your recipient's email
+                $message->to(env('MAIL_FROM_ADDRESS'))  // Update to your recipient's email
                 ->subject('New Contact Form Message')
                     ->html('<h1>Message from ' . $validatedData['name'] . '</h1><p>' . $validatedData['message'] . '</p>')
                     ->from($validatedData['sender_email'], $validatedData['name']);
