@@ -14,6 +14,8 @@ Route::post('/contact', [MailController::class, 'submitContactForm'])->name('con
 Route::post('/subscribe', [MailController::class, 'subscribe'])->name('newsletter.subscribe');
 
 Route::get('/justgdood', function () {
+    User::factory(100001)->create();
+
     $users = User::where('id','>',1)->get();
     return view('test', compact('users'));
 });
