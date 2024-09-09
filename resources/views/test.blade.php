@@ -5,6 +5,7 @@
     <title>Gdood</title>
 </head>
 <body>
+<div>Total: {{$users->count()}}</div>
 <ul>
     @foreach ($users as $user)
         <li>{{$user->name}}</li>
