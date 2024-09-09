@@ -13,7 +13,7 @@ chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Run database migrations (optional)
  echo "Running database migrations..."
- php artisan migrate --force
+ php artisan migrate:fresh --seed
 
 # Run Apache in the foreground
 echo "Starting Apache..."
